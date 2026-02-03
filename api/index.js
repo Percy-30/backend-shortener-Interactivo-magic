@@ -42,7 +42,22 @@ app.post('/api/v1/shorten', async (req, res) => {
     }
 });
 
-// Redirect: Get original link
+// API: Get original link data (for frontend fetching)
+app.get('/api/v1/get/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const original_url = await redis.get(`link:${id}`);
+        if (original_url) {
+            return res.json({ url: original_url });
+        }
+        res.status(404).json({ error: 'Link no encontrado' });
+    } catch (error) {
+        console.error('Error fetching link:', error);
+        res.status(500).json({ error: 'Error en el servidor' });
+    }
+});
+
+// Redirect: Get original link (Traditional redirection)
 app.get('/:id', async (req, res) => {
     const { id } = req.params;
 
