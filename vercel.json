@@ -2,12 +2,8 @@
     "version": 2,
     "rewrites": [
         {
-            "source": "/api/(.*)",
-            "destination": "/index.js"
-        },
-        {
-            "source": "/:id",
-            "destination": "/index.js"
+            "source": "/(.*)",
+            "destination": "/api/index.js"
         }
     ]
 }
