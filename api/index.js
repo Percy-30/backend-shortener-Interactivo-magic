@@ -16,9 +16,35 @@ const redis = new Redis({
 });
 
 // Middleware
-app.use(cors());
+app.use(cors({
+    origin: '*', // Allow all for now, or specify: ['https://interactivomagic.ftydownloader.com', 'http://localhost:5173']
+    methods: ['GET', 'POST', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
+// Health Check
+app.get('/api/v1/health', async (req, res) => {
+    try {
+        const start = Date.now();
+        await redis.ping();
+        const duration = Date.now() - start;
+        res.json({ 
+            status: 'ok', 
+            database: 'connected', 
+            latency: `${duration}ms`,
+            timestamp: new Date().toISOString() 
+        });
+    } catch (error) {
+        console.error('Health check failed:', error);
+        res.status(500).json({ 
+            status: 'error', 
+            database: 'disconnected', 
+            error: error.message 
+        });
+    }
+});
 
 // API: Create short link
 app.post('/api/v1/shorten', async (req, res) => {
