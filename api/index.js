@@ -81,6 +81,7 @@ app.get('/api/v1/health', async (req, res) => {
             error: error.message,
             diagnostics,
             tip: 'Verifica que la URL en Vercel sea HTTPS y que el Token sea el REST Token, no el de Redis (ioredis).'
+        });
     }
 });
 
