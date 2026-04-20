@@ -52,13 +52,15 @@ app.get('/api/v1/health', async (req, res) => {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 3000);
             const testResp = await fetch(redisUrl, { signal: controller.signal }).catch(e => {
-                rawFetchStatus = `fetch_failed: ${e.message}`;
-                return { status: 'failed' };
+                rawFetchStatus = `fetch_error: ${e.message}`; // CAPTURE THE ACTUAL MESSAGE
+                return null;
             });
-            if (testResp && testResp.status) rawFetchStatus = `HTTP_${testResp.status}`;
+            if (testResp) {
+                rawFetchStatus = `HTTP_${testResp.status}`;
+            }
             clearTimeout(timeoutId);
         } catch (e) {
-            rawFetchStatus = `catch_error: ${e.message}`;
+            rawFetchStatus = `outer_catch: ${e.message}`;
         }
         diagnostics.rawFetchStatus = rawFetchStatus;
 
