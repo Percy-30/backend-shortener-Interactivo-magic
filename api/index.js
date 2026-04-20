@@ -52,7 +52,9 @@ app.get('/api/v1/health', async (req, res) => {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 3000);
             const testResp = await fetch(redisUrl, { signal: controller.signal }).catch(e => {
-                rawFetchStatus = `fetch_error: ${e.message}`; // CAPTURE THE ACTUAL MESSAGE
+                // Node.js fetch errors often have a .cause property with the real error
+                const causeMsg = e.cause ? ` | CAUSE: ${e.cause.message || e.cause.code || e.cause}` : '';
+                rawFetchStatus = `fetch_error: ${e.message}${causeMsg}`;
                 return null;
             });
             if (testResp) {
