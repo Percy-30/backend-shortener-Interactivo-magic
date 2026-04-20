@@ -24,24 +24,46 @@ app.use(cors({
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// Health Check
+// Health Check con Diagnóstico
 app.get('/api/v1/health', async (req, res) => {
+    const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
+    const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+
+    const diagnostics = {
+        hasUrl: !!redisUrl,
+        hasToken: !!redisToken,
+        urlPreview: redisUrl ? `${redisUrl.substring(0, 15)}...` : 'NONE',
+        nodeVersion: process.version,
+        time: new Date().toISOString()
+    };
+
     try {
+        if (!redisUrl || !redisToken) {
+            return res.status(500).json({
+                status: 'error',
+                message: 'Variables de entorno faltantes en Vercel',
+                diagnostics
+            });
+        }
+
         const start = Date.now();
         await redis.ping();
         const duration = Date.now() - start;
+        
         res.json({ 
             status: 'ok', 
             database: 'connected', 
             latency: `${duration}ms`,
-            timestamp: new Date().toISOString() 
+            timestamp: diagnostics.time 
         });
     } catch (error) {
         console.error('Health check failed:', error);
         res.status(500).json({ 
             status: 'error', 
             database: 'disconnected', 
-            error: error.message 
+            error: error.message,
+            diagnostics,
+            tip: 'Verifica que la URL en Vercel sea HTTPS y que el Token sea el REST Token, no el de Redis (ioredis).'
         });
     }
 });
